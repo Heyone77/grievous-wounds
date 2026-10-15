@@ -1,0 +1,52 @@
+.gw-panel {line-height:1.5;min-width:300px}
+.gw-panel .gw-note {padding:.65rem;border-left:3px solid #a86132;background:rgba(150,100,60,.10)}
+.gw-panel ul {padding-left:1.2rem}.gw-panel li{margin:.65rem 0}
+.gw-panel small {opacity:.8}.gw-panel select{width:100%;margin:.4rem 0}
+.gw-panel h3 {margin:1rem 0 .5rem}.gw-card {border-left:3px solid #a86132;padding-left:.7rem}
+
+/* Keep actions visible while long wound lists scroll inside the dialog. */
+.gw-wounds-dialog {
+  min-height:0;
+  max-height:calc(100vh - 32px);
+  max-height:calc(100dvh - 32px);
+  max-width:calc(100vw - 32px);
+}
+.gw-wounds-dialog .window-content,
+.gw-wounds-dialog .dialog-form,
+.gw-wounds-dialog .window-content > form {
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+}
+.gw-wounds-dialog .dialog-content {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-wrap:anywhere;
+  scrollbar-gutter:stable;
+}
+.gw-wounds-dialog .gw-panel {
+  min-width:0;
+  min-height:0;
+  max-height:55vh;
+  max-height:55dvh;
+  overflow-y:auto;
+  overflow-wrap:anywhere;
+  scrollbar-gutter:stable;
+}
+.gw-wounds-dialog .dialog-buttons,
+.gw-wounds-dialog .form-footer {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));
+  flex:0 0 auto;
+  gap:.4rem;
+}
+.gw-wounds-dialog .dialog-buttons button,
+.gw-wounds-dialog .form-footer button {
+  min-width:0;
+  height:auto;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}

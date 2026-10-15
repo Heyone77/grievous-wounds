@@ -1,0 +1,7 @@
+{
+  "name": "Ранения",
+  "type": "script",
+  "scope": "global",
+  "img": "icons/svg/blood.svg",
+  "command": "await game.modules.get(\"grievous-wounds\").api.open();"
+}

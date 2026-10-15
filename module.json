@@ -1,0 +1,53 @@
+{
+  "id": "grievous-wounds",
+  "title": "Тяжёлые ранения — Grim Hollow",
+  "description": "Тяжёлые и постоянные ранения. Выбор: упасть или остаться с 1 HP и получить ранение.",
+  "version": "0.2.0",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "Custom module"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "styles": [
+    "styles/wounds.css"
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "6.0.0",
+          "maximum": "6.99.99"
+        }
+      }
+    ],
+    "requires": [
+      {
+        "id": "lib-wrapper",
+        "type": "module"
+      }
+    ],
+    "recommends": [
+      {
+        "id": "cat",
+        "type": "module"
+      },
+      {
+        "id": "midi-qol",
+        "type": "module"
+      },
+      {
+        "id": "dae",
+        "type": "module"
+      }
+    ]
+  }
+}
