@@ -2,7 +2,7 @@
   "id": "grievous-wounds",
   "title": "Тяжёлые ранения — Grim Hollow",
   "description": "Тяжёлые и постоянные ранения. Выбор: упасть или остаться с 1 HP и получить ранение.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -49,5 +49,9 @@
         "type": "module"
       }
     ]
-  }
+  },
+  "url": "https://github.com/Heyone77/grievous-wounds",
+  "manifest": "https://github.com/Heyone77/grievous-wounds/releases/latest/download/module.json",
+  "download": "https://github.com/Heyone77/grievous-wounds/releases/download/v0.3.1/grievous-wounds.zip",
+  "readme": "https://github.com/Heyone77/grievous-wounds/blob/master/README.md"
 }

@@ -1,10 +1,10 @@
 {
-  "name": "grievous-wounds-v0.1.0",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "grievous-wounds",
+  "version": "0.3.1",
+  "description": "Тяжёлые и постоянные ранения. Выбор: упасть или остаться с 1 HP и получить ранение.",
   "scripts": {
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "build": "python scripts/build_release.py"
   },
   "private": true
 }
