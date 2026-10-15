@@ -17,3 +17,6 @@ Only APIs were used; no third-party source files or artwork are bundled.
 - https://gitlab.com/tposney/midi-qol/-/raw/v14/src/module/Hooks.ts - concentration suppression options and zero-HP concentration loss.
 - https://gitlab.com/tposney/midi-qol/-/raw/v14/src/module/utils.ts - doConcentrationCheck and rollConcentration routing.
 - https://raw.githubusercontent.com/foundryvtt/dnd5e/6.0.x/module/documents/actor/actor.mjs - getConcentrationDC and rollConcentration.
+
+0.3.0 event identity reference:
+- https://gitlab.com/tposney/midi-qol/-/raw/v14/src/module/Workflow.ts - preTargetDamageApplication and per-use item card identity. A temporary activity UUID is not treated as a unique attack ID.

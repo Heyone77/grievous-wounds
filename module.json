@@ -2,7 +2,7 @@
   "id": "grievous-wounds",
   "title": "Тяжёлые ранения — Grim Hollow",
   "description": "Тяжёлые и постоянные ранения. Выбор: упасть или остаться с 1 HP и получить ранение.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
