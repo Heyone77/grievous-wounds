@@ -650,6 +650,7 @@ test('wound panel keeps wound actions and treatments together, close last, and h
  try {
   await open(a);
   assert.deepEqual(dialog.buttons.map(b=>b.action),['roll','add','remove','treat','healAll','overview','journal','audit','close']);
-  assert.match(dialog.content,/data-tooltip-text=/);assert.match(dialog.content,/<details class="gw-help">/);
+  assert.doesNotMatch(dialog.content,/data-tooltip(?:-text)?=/);assert.match(dialog.content,/<details class="gw-help">/);
+  assert.equal((dialog.content.match(/Ограничения рук\/действий/g)??[]).length,1);
  } finally {foundry.applications=previous;}
 });
