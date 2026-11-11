@@ -69,3 +69,30 @@
 .gw-help summary {cursor:help;font-size:1.3rem;list-style:none}
 .gw-help > div {display:none;position:absolute;bottom:100%;left:0;z-index:10;width:min(450px,calc(100vw - 80px));padding:.7rem;border:1px solid #98754b;border-radius:5px;background:var(--color-bg, #242126);color:var(--color-text-primary,#eee)}
 .gw-help:hover > div,.gw-help:focus-within > div,.gw-help[open] > div {display:block}
+
+/* Separate wound types while keeping each injury and its controls readable. */
+.gw-panel .gw-wound-section {margin:.9rem 0 1.1rem}
+.gw-panel .gw-wound-section h3 {display:flex;align-items:center;gap:.5rem;margin:.1rem 0 .35rem;font-size:.9rem;letter-spacing:.025em;text-transform:uppercase;border-bottom:1px solid rgba(166,119,79,.45);padding:.3rem 0}
+.gw-wound-section h3 span {display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .3rem;border-radius:999px;background:rgba(175,124,79,.18);font-size:.75rem;letter-spacing:0}
+.gw-wound-section--grievous h3 {color:var(--color-level-warning, #e4a76e)}
+.gw-wound-section--permanent h3 {color:var(--color-text-secondary, #cbbba7)}
+.gw-wound-section .gw-wound-group {padding:.4rem .15rem;border-bottom:1px solid rgba(150,100,60,.18)}
+.gw-wound-section .gw-wound-group summary span {margin-top:.1rem}
+.gw-wounds-dialog .dialog-buttons button[data-action="overview"],
+.gw-wounds-dialog .form-footer button[data-action="overview"] {justify-self:start;width:auto;padding:.3rem .65rem;font-size:.85em}
+.gw-open-overview {width:auto;min-width:0;padding:.25rem .65rem;font-size:.85em}
+
+/* Overview: one compact card per character, with consistently placed actions. */
+.gw-overview .window-content {padding:.85rem 1rem}
+.gw-overview-heading {font-size:1.1rem;margin:.8rem 0 .3rem}
+.gw-overview .gw-character {margin:.5rem 0 .8rem;padding:.75rem .85rem;border:1px solid rgba(166,119,79,.38);border-radius:6px;background:rgba(150,100,60,.06)}
+.gw-character-header {display:flex;align-items:start;justify-content:space-between;gap:.75rem}
+.gw-character-header h4 {margin:0;font-size:1.1rem}
+.gw-character-header small {display:block;margin-top:.15rem}
+.gw-hp {flex:none;padding:.15rem .5rem;border-radius:4px;background:rgba(175,124,79,.16);white-space:nowrap}
+.gw-overview .gw-wound-section {margin:.65rem 0}
+.gw-overview .gw-wound-section h3 {font-size:.78rem}
+.gw-character-actions {display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.6rem}
+.gw-overview .gw-character-actions button {flex:0 1 auto;width:auto;min-width:0;margin:0;padding:.25rem .6rem;font-size:.85rem}
+.gw-overview footer {display:flex;justify-content:flex-end}
+.gw-overview footer button {width:auto;padding:.25rem .7rem}

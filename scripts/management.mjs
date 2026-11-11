@@ -16,11 +16,18 @@ export function compactWounds(records,level=1) {
   const key=record.kind+':'+record.id+':'+!!record.disabled;
   if(!groups.has(key))groups.set(key,[]);groups.get(key).push(record);
  }
- return [...groups.values()].map(group=>{
+ const renderGroup=group=>{
   const r=group[0], entry=tableEntry(r), n=group.length;
   let brief={internal:'-'+(3*level*n)+' максимальных HP',lungs:'-'+(level*n)+' максимальных HP',deep:'При падении: +'+n+' провалов',muscle:'Штраф урона: 1d'+muscleDie(group),battered:'При получении: +'+n+' истощения',leg:'Скорость -10 футов (штраф не суммируется)',lostleg:'Скорость -'+15*n+' футов, минимум 5',eye:n>=2?'Ослеплённый':'Помеха на зрительные проверки',concussion:'Концентрация недоступна',laceration:group.some(x=>x.bleedingActive!==false)?'Кровотечение активно':'Кровотечение остановлено',recovery:'Ограничение костей хитов',oldpain:'Натуральная 1: недееспособность',hesitant:'Первый спасбросок против испуга после отдыха'}[r.id]??(r.kind==='permanent'?'Постоянная рана':'Тяжёлое ранение');
   return '<details class="gw-wound-group"><summary><b>'+esc(entry?.name??r.id)+(n>1?' ×'+n:'')+'</b><span>'+esc(r.disabled?'Отключено - не применяется':brief)+'</span></summary><p>'+esc(entry?.text??'Неизвестная запись: требуется проверка мастером.')+'</p><ul>'+group.map((item,i)=>'<li>Экземпляр '+(i+1)+' · '+esc(item.effectId)+'</li>').join('')+'</ul></details>';
- }).join('')||'<p>Ранений нет.</p>';
+ };
+ if(!groups.size)return '<p>Ранений нет.</p>';
+ const sections=[['grievous','Тяжёлые раны'],['permanent','Постоянные раны'],['unknown','Другие записи']];
+ return sections.map(([kind,title])=>{
+  const selected=[...groups.values()].filter(group=>kind==='unknown'?!['grievous','permanent'].includes(group[0].kind):group[0].kind===kind);
+  if(!selected.length)return '';
+  return '<section class="gw-wound-section gw-wound-section--'+kind+'"><h3>'+title+' <span>'+selected.reduce((sum,group)=>sum+group.length,0)+'</span></h3>'+selected.map(renderGroup).join('')+'</section>';
+ }).join('');
 }
 export function auditRecords(records,effects=[]) {
  const issues=[], simulated=[], seen=new Set();

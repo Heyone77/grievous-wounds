@@ -2,6 +2,14 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {GRIEVOUS,PERMANENT} from '../scripts/rules.mjs';
 import {choicePrice,priceHTML,compactWounds,auditRecords,appendEvent} from '../scripts/management.mjs';
+test('wound list separates grievous and permanent injuries and retains disabled and unknown records',()=>{
+ const entries=[{id:'scar',kind:'permanent',key:7,effectId:'scar'}, {id:'pain',kind:'grievous',key:6,effectId:'pain'}, {id:'pain',kind:'grievous',key:6,effectId:'disabled',disabled:true}, {id:'mystery',kind:'unknown',key:99,effectId:'unknown'}];
+ const html=compactWounds(entries,3);
+ const heavy=html.indexOf('Тяжёлые раны'), permanent=html.indexOf('Постоянные раны'), other=html.indexOf('Другие записи');
+ assert.ok(heavy>=0&&heavy<permanent&&permanent<other);
+ assert.ok(html.indexOf('pain',heavy)<permanent);assert.ok(html.indexOf('scar',permanent)<other);
+ assert.match(html,/disabled/);assert.match(html,/Отключено/);assert.match(html,/unknown/);
+});
 const r=(id,key,kind='grievous',extra={})=>({id,key,kind,effectId:'effect-'+Math.random(),...extra});
 test('choice price shows current death failures, added failures, and death at three',()=>{
  const wounds=[r('deep',9),r('deep',9),r('oldpain',10,'permanent'),r('deep',9,'grievous',{disabled:true})];
