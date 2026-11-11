@@ -626,3 +626,21 @@ test('undo refuses to remove an event wound whose effect gained unrelated mechan
 test('undo refuses later mechanical changes to a drop-condition effect',async()=>{
  await lastMomentCase(async c=>{await applyDamageUpdate(c.a,c.wrapped,c.data,c.options);const effect=c.a.effects.find(e=>e.statuses.has('unconscious'));effect.system={changes:[{key:'unrelated',value:1}]};assert.throws(()=>undoPreview(c.a,eventLog(c.a)[0].id),/изменились/);assert.ok(c.a.effects.includes(effect));},{answer:'fall'});
 });
+const {healGrievous}=await import('../scripts/main.mjs');
+test('healGrievous removes active and disabled heavy wounds while preserving permanent wounds and health',async()=>{
+ const a=actor([['internal'],['pain'],['lungs','permanent',6]]);a.effects[1].disabled=true;
+ const hp=structuredClone(a.system.attributes.hp);a.system.attributes.exhaustion=2;
+ await a.createEmbeddedDocuments('ActiveEffect',[{statuses:['prone'],flags:{}}]);
+ await healGrievous(a);assert.equal(a.effects.length,2);assert.ok(a.effects.some(e=>e.getFlag(ID,'wound')?.kind==='permanent'));assert.ok(a.statuses.has('prone'));
+ assert.deepEqual(a.system.attributes.hp,hp);assert.equal(a.system.attributes.exhaustion,2);
+});
+test('healGrievous rejects stale confirmation, pending events, and players',async()=>{
+ const a=actor([['pain']]);await assert.rejects(()=>healGrievous(a,{expected:'old'}),/./);assert.equal(a.effects.length,1);
+ a.flags[ID]={events:[{status:'applied',finalized:false}]};await assert.rejects(()=>healGrievous(a),/./);assert.equal(a.effects.length,1);
+ a.flags[ID]={};game.user.isGM=false;try{await assert.rejects(()=>healGrievous(a),/./);}finally{game.user.isGM=true;}
+});
+test('cancelling bulk-heal confirmation preserves all wounds',async()=>{
+ const a=actor([['pain']]);const before=foundry.applications;let waits=0;
+ foundry.applications={api:{DialogV2:{wait:async()=>++waits===1?'healAll':'close',confirm:async()=>false}}};
+ try{await open(a);assert.equal(a.effects.length,1);}finally{foundry.applications=before;}
+});

@@ -58,3 +58,14 @@
 .gw-wound-group ul {font-size:.85em;opacity:.8}
 .gw-pending b {display:block}
 .gw-pending p {margin:.4rem 0}
+.gw-overview .window-content {overflow:hidden;padding:1rem}
+.gw-overview .gw-panel {height:100%;display:flex;flex-direction:column;min-height:0}
+.gw-overview-list {overflow-y:auto;flex:1;min-height:0;scrollbar-gutter:stable}
+.gw-overview article {border-bottom:1px solid #98754b;padding:.7rem 0}
+.gw-overview footer {flex:none;padding-top:.5rem}
+.gw-overview {max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px)}
+.gw-overview button {height:auto;white-space:normal;margin:.2rem}
+.gw-help {position:relative;width:fit-content;margin:.5rem 0}
+.gw-help summary {cursor:help;font-size:1.3rem;list-style:none}
+.gw-help > div {display:none;position:absolute;bottom:100%;left:0;z-index:10;width:min(450px,calc(100vw - 80px));padding:.7rem;border:1px solid #98754b;border-radius:5px;background:var(--color-bg, #242126);color:var(--color-text-primary,#eee)}
+.gw-help:hover > div,.gw-help:focus-within > div,.gw-help[open] > div {display:block}

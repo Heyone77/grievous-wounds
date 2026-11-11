@@ -17,13 +17,14 @@ const notices = [];
 globalThis.ui = {notifications:{info:message=>notices.push(message),warn:()=>{},error:()=>{}}};
 globalThis.game = {
  system:{id:'dnd5e',version:'6.0.6'},settings:{register(){}},actors:[],
- user:{id:'gm',isGM:true},users:{activeGM:{id:'gm'}},
+ user:{id:'gm',isGM:true},users:Object.assign([{id:'player',isGM:false}],{activeGM:{id:'gm'}}),
  modules:new Map([['grievous-wounds',{}],['dae',{active:true}],['midi-qol',{active:true}]])
 };
 const registrations = new Map();
+let actorNumber=0;
 class LifecycleActor {
  constructor(type='character',wounds=[]) {
-  this.type=type;this.uuid=`Actor.${type}`;this.flags={};
+  this.type=type;this.uuid=`Actor.${type}${++actorNumber}`;this.name=this.uuid;this.flags={};
   this._source={classLevels:type==='character'?3:0,system:{details:{level:0},attributes:{
    hp:{value:35,max:40,effectiveMax:40,tempmax:0},movement:{walk:30,fly:0,units:'ft'},
    concentration:{bonuses:{},roll:{bonus:'1'}}
@@ -31,6 +32,7 @@ class LifecycleActor {
   this.effects=wounds.map(wound=>({disabled:false,getFlag:()=>wound}));
  }
  getFlag(_id,key){return this.flags[key];}
+ testUserPermission(){return true;}
  prepareData(marker) {
   this.system.details.level+=this._source.classLevels;
   const concentration=this.system.attributes.concentration;

@@ -1,5 +1,6 @@
 import {ID, GRIEVOUS, PERMANENT, countWounds, countGrievous, resolveGrievous, resolvePermanent, muscleDie, movementPenalty, hpPenalty, escapeHTML as esc} from "./rules.mjs";
 import {DROP_STATUSES,tableEntry,priceHTML,compactWounds,auditRecords,damageSnapshot,snapshotMatches,appendEvent} from "./management.mjs";
+import {showOverview,currentRows,grievousSnapshot,unfinished} from './overview.mjs';
 
 const queryLocks = new Set();
 const actionLocks = new Set();
@@ -425,7 +426,24 @@ async function applyWoundConsequences(actor,effect) {
   await actor.updateEmbeddedDocuments("ActiveEffect",[{_id:effect.id,["flags."+ID+".application.applied"]:true}]);
 }
 function requireSettled(actor) {
- if(actor.getFlag(ID,"beforeDamage")||actor.getFlag(ID,"pending")||eventLog(actor).some(e=>e.status==="undoing"))throw new Error("Сначала завершите, отмените или снимите незавершённый исход через панель.");
+ if(unfinished(actor).length)throw new Error("Сначала завершите, отмените или снимите незавершённый исход через панель.");
+}
+export function openOverview(){return showOverview({open,openJournal,confirmHeal});}
+export async function healGrievous(actor,{expected}={}) {
+ return locked(actor,async()=>{
+  requireSettled(actor);
+  const snapshot=grievousSnapshot(actor);
+  if(expected!==undefined&&snapshot.signature!==expected)throw new Error('Список ран изменился. Откройте подтверждение заново.');
+  if(snapshot.ids.length)await actor.deleteEmbeddedDocuments('ActiveEffect',snapshot.ids);
+  return snapshot.ids;
+ });
+}
+async function confirmHeal(actor) {
+ requireGM();requireSettled(actor);
+ const snapshot=grievousSnapshot(actor);
+ if(!snapshot.ids.length)return ui.notifications.info('Тяжёлых ран нет.');
+ const names=records(actor).filter(r=>snapshot.ids.includes(r.effectId)).map(r=>'<li>'+esc(tableEntry(r)?.name??r.id)+(r.disabled?' (отключена)':'')+'</li>').join('');
+ if(await foundry.applications.api.DialogV2.confirm({window:{title:'Вылечить все тяжёлые раны'},content:'<p>'+esc(actor.name)+': удалить следующие раны?</p><ul>'+names+'</ul><p>Постоянные раны, текущие HP и истощение сохраняются.</p>'}))await healGrievous(actor,{expected:snapshot.signature});
 }
 export async function addWound(actor,kind,key) {return locked(actor,()=>{requireSettled(actor);return addWoundInternal(actor,kind,Number(key));});}
 export async function rollWound(actor=selectedActor()) {
@@ -882,13 +900,16 @@ export async function open(actor=selectedActor()) {
   const buttons = [{action:"close",label:"Закрыть",default:true}];
   if(game.user.isGM) buttons.unshift({action:"roll",label:"Бросить рану"},{action:"add",label:"Добавить вручную"},{action:"remove",label:"Удалить рану"},{action:"treat",label:"Лечение"});
   buttons.push({action:"journal",label:"Журнал исходов"});
+  if(game.user.isGM)buttons.push({action:'overview',label:'Все ранения'},{action:'healAll',label:'Вылечить все тяжёлые раны'});
   if(game.user.isGM)buttons.push({action:"audit",label:"Проверить старые раны"});
   if(game.user.isGM&&outstanding)buttons.unshift({action:"continue",label:"Продолжить выбор"},{action:"abandon",label:"Снять зависший выбор"});
   if(game.user.isGM && pending&&!pending.answer) buttons.unshift({action:"query",label:"Спросить игрока"},{action:"resolve",label:"Мастер: выбрать исход"});
   if(has(actor,"muscle")) buttons.push({action:"muscle",label:`Штраф урона: 1d${muscleDie(active(actor))}`});
   if(game.user.isGM && actor.effects.some(e=>e.getFlag(ID,"temporary"))) buttons.push({action:"temporary",label:"Снять временный эффект"});
-  const action = await dlg({classes:["gw-wounds-dialog"],window:{title:`Ранения: ${actor.name}`},position:{width:620},content:`<div class="gw-panel"><p>HP: ${actor.system.attributes.hp.value}/${actor.system.attributes.hp.effectiveMax}. Активных ран: <b>${countWounds(active(actor))}</b>; тяжёлых (штраф к 2d10): <b>${countGrievous(active(actor))}</b>.</p>${pendingHTML(actor,outstanding)}${compactWounds(list,Number(actor.system.details?.level??1))}<p class="gw-note">Ограничения рук/действий, зрительные проверки и Прилив адреналина требуют участия мастера. При активном Midi-QOL штраф надрыва мышцы применяется автоматически, если включена соответствующая настройка. Кнопка ручного броска предназначена для остальных случаев.</p></div>`,buttons});
+  const action = await dlg({classes:["gw-wounds-dialog"],window:{title:`Ранения: ${actor.name}`},position:{width:620},content:`<div class="gw-panel"><p>HP: ${actor.system.attributes.hp.value}/${actor.system.attributes.hp.effectiveMax}. Активных ран: <b>${countWounds(active(actor))}</b>; тяжёлых (штраф к 2d10): <b>${countGrievous(active(actor))}</b>.</p>${pendingHTML(actor,outstanding)}${compactWounds(list,Number(actor.system.details?.level??1))}<details class="gw-help"><summary aria-label="Справка об автоматизации">ⓘ</summary><div role="tooltip">Ограничения рук/действий, зрительные проверки и Прилив адреналина требуют участия мастера. При активном Midi-QOL штраф надрыва мышцы применяется автоматически, если включена соответствующая настройка. Кнопка ручного броска предназначена для остальных случаев.</div></details></div>`,buttons});
   if(action==="journal")await openJournal(actor);
+  if(action==='overview'){openOverview();return;}
+  if(action==='healAll')await confirmHeal(actor);
   if(action==="audit")await inspectOldWounds(actor);
   if(action==="continue") {
    if(beforeDamage)await resumeDamage(actor);
@@ -961,9 +982,10 @@ Hooks.once("setup",()=>{
   },"WRAPPER");
 });
 Hooks.once("ready",()=>{
-  game.modules.get(ID).api = {open,rollWound,addWound,treat,requestChoice,resolveChoice,records,eventLog,openJournal,resumeDamage,undoPreview,undoEvent,abandonDamage,auditWounds,repairPreview,repairWound};
+  game.modules.get(ID).api = {openOverview,healGrievous,open,rollWound,addWound,treat,requestChoice,resolveChoice,records,eventLog,openJournal,resumeDamage,undoPreview,undoEvent,abandonDamage,auditWounds,repairPreview,repairWound};
   if(game.system.id !== "dnd5e" || !game.system.version.startsWith("6.")) ui.notifications.warn("Тяжёлые ранения: модуль рассчитан на dnd5e 6.x.");
-  if(leadGM() && allActors().some(a=>a.getFlag(ID,"pending")||a.getFlag(ID,"beforeDamage"))) ui.notifications.info("Есть незавершённый выбор при 0 HP. Откройте ранения соответствующего персонажа.");
+  const waiting=currentRows().filter(r=>r.pending.length);
+  if(leadGM() && waiting.length) ui.notifications.info("Незавершённые операции: "+waiting.slice(0,3).map(r=>r.actor.name+(r.location?" ("+r.location+")":"")).join(", ")+(waiting.length>3?" и ещё "+(waiting.length-3):"")+". Откройте «Все ранения».");
   console.info(`${ID} | Loaded. API: game.modules.get('${ID}').api.open()`);
 });
 
@@ -1001,4 +1023,13 @@ Hooks.on("midi-qol.DamageRollComplete",async workflow=>{
   }
   await workflow.setDamageRolls(rolls);
   modifiedDamage.set(workflow,workflow.damageRolls);
+});
+
+Hooks.on("renderActorDirectory",(_app,html)=>{
+ if(!game.user.isGM)return;
+ const root=html instanceof HTMLElement?html:html?.[0];
+ if(!root||root.querySelector('.gw-open-overview'))return;
+ const button=document.createElement('button');button.type='button';button.className='gw-open-overview';button.textContent='Все ранения';
+ button.addEventListener('click',()=>openOverview());
+ (root.querySelector('.directory-header')??root).prepend(button);
 });

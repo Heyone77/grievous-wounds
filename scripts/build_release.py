@@ -8,7 +8,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 FILES = (
     "module.json", "README.md", "SOURCES.md", "open-wounds-macro.json",
-    "scripts/main.mjs", "scripts/rules.mjs", "scripts/management.mjs",
+    "scripts/main.mjs", "scripts/rules.mjs", "scripts/management.mjs", "scripts/overview.mjs",
     "styles/wounds.css",
 )
 REPOSITORY = "https://github.com/Heyone77/grievous-wounds"
