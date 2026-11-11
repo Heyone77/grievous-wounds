@@ -897,16 +897,17 @@ export async function open(actor=selectedActor()) {
   if(!actor || (!actor.isOwner && !game.user.isGM)) return;
   const list = records(actor), pending = actor.getFlag(ID,"pending"), beforeDamage=actor.getFlag(ID,"beforeDamage");
   const outstanding=beforeDamage??pending;
-  const buttons = [{action:"close",label:"Закрыть",default:true}];
-  if(game.user.isGM) buttons.unshift({action:"roll",label:"Бросить рану"},{action:"add",label:"Добавить вручную"},{action:"remove",label:"Удалить рану"},{action:"treat",label:"Лечение"});
+  const buttons = [];
+  if(game.user.isGM) buttons.push({action:"roll",label:"Бросить рану"},{action:"add",label:"Добавить вручную"},{action:"remove",label:"Удалить рану"},{action:"treat",label:"Лечение"},{action:'healAll',label:'Вылечить все тяжёлые раны'});
+  if(game.user.isGM)buttons.push({action:'overview',label:'Все ранения'});
   buttons.push({action:"journal",label:"Журнал исходов"});
-  if(game.user.isGM)buttons.push({action:'overview',label:'Все ранения'},{action:'healAll',label:'Вылечить все тяжёлые раны'});
   if(game.user.isGM)buttons.push({action:"audit",label:"Проверить старые раны"});
   if(game.user.isGM&&outstanding)buttons.unshift({action:"continue",label:"Продолжить выбор"},{action:"abandon",label:"Снять зависший выбор"});
   if(game.user.isGM && pending&&!pending.answer) buttons.unshift({action:"query",label:"Спросить игрока"},{action:"resolve",label:"Мастер: выбрать исход"});
   if(has(actor,"muscle")) buttons.push({action:"muscle",label:`Штраф урона: 1d${muscleDie(active(actor))}`});
   if(game.user.isGM && actor.effects.some(e=>e.getFlag(ID,"temporary"))) buttons.push({action:"temporary",label:"Снять временный эффект"});
-  const action = await dlg({classes:["gw-wounds-dialog"],window:{title:`Ранения: ${actor.name}`},position:{width:620},content:`<div class="gw-panel"><p>HP: ${actor.system.attributes.hp.value}/${actor.system.attributes.hp.effectiveMax}. Активных ран: <b>${countWounds(active(actor))}</b>; тяжёлых (штраф к 2d10): <b>${countGrievous(active(actor))}</b>.</p>${pendingHTML(actor,outstanding)}${compactWounds(list,Number(actor.system.details?.level??1))}<details class="gw-help"><summary aria-label="Справка об автоматизации">ⓘ</summary><div role="tooltip">Ограничения рук/действий, зрительные проверки и Прилив адреналина требуют участия мастера. При активном Midi-QOL штраф надрыва мышцы применяется автоматически, если включена соответствующая настройка. Кнопка ручного броска предназначена для остальных случаев.</div></details></div>`,buttons});
+  buttons.push({action:"close",label:"Закрыть",default:true});
+  const action = await dlg({classes:["gw-wounds-dialog"],window:{title:`Ранения: ${actor.name}`},position:{width:620},content:`<div class="gw-panel"><p>HP: ${actor.system.attributes.hp.value}/${actor.system.attributes.hp.effectiveMax}. Активных ран: <b>${countWounds(active(actor))}</b>; тяжёлых (штраф к 2d10): <b>${countGrievous(active(actor))}</b>.</p>${pendingHTML(actor,outstanding)}${compactWounds(list,Number(actor.system.details?.level??1))}<details class="gw-help"><summary aria-label="Справка об автоматизации" data-tooltip="Справка" data-tooltip-text="Ограничения рук/действий, зрительные проверки и Прилив адреналина требуют участия мастера. При активном Midi-QOL штраф надрыва мышцы применяется автоматически, если включена соответствующая настройка. Кнопка ручного броска предназначена для остальных случаев.">ⓘ</summary><div>Ограничения рук/действий, зрительные проверки и Прилив адреналина требуют участия мастера. При активном Midi-QOL штраф надрыва мышцы применяется автоматически, если включена соответствующая настройка. Кнопка ручного броска предназначена для остальных случаев.</div></details></div>`,buttons});
   if(action==="journal")await openJournal(actor);
   if(action==='overview'){openOverview();return;}
   if(action==='healAll')await confirmHeal(actor);

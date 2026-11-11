@@ -644,3 +644,12 @@ test('cancelling bulk-heal confirmation preserves all wounds',async()=>{
  foundry.applications={api:{DialogV2:{wait:async()=>++waits===1?'healAll':'close',confirm:async()=>false}}};
  try{await open(a);assert.equal(a.effects.length,1);}finally{foundry.applications=before;}
 });
+test('wound panel keeps wound actions and treatments together, close last, and help accessible',async()=>{
+ const a=actor(),previous=foundry.applications;let dialog;
+ foundry.applications={api:{DialogV2:{wait:async options=>{dialog=options;return 'close';}}}};
+ try {
+  await open(a);
+  assert.deepEqual(dialog.buttons.map(b=>b.action),['roll','add','remove','treat','healAll','overview','journal','audit','close']);
+  assert.match(dialog.content,/data-tooltip-text=/);assert.match(dialog.content,/<details class="gw-help">/);
+ } finally {foundry.applications=previous;}
+});
