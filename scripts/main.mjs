@@ -930,6 +930,17 @@ async function chooseEntry(title,entries) {
 Hooks.on("getHeaderControlsActorSheetV2",(sheet,controls)=>{
   if(sheet.actor?.type === "character" && sheet.actor.isOwner) controls.push({icon:"fa-solid fa-droplet",label:"Ранения",onClick:()=>run(open(sheet.actor))});
 });
+// Register before world Documents are initialized. setup is too late for their
+// first preparation; calling prepareData again at ready does not reset the
+// dnd5e model and can duplicate levels or redefine non-configurable shims.
+Hooks.once("init",()=>{
+  if(typeof globalThis.libWrapper === "undefined") return;
+  libWrapper.register(ID,"CONFIG.Actor.documentClass.prototype.prepareData",function(wrapped,...args) {
+    const result = wrapped(...args);
+    prepareWoundData(this);
+    return result;
+  },"WRAPPER");
+});
 Hooks.once("setup",()=>{
   if(typeof globalThis.libWrapper === "undefined") {
     ui.notifications.error("Тяжёлые ранения: требуется активный libWrapper.");
@@ -937,11 +948,6 @@ Hooks.once("setup",()=>{
   }
   libWrapper.register(ID,"CONFIG.Actor.documentClass.prototype.update",function(wrapped,data,options={}) {
     return applyDamageUpdate(this,wrapped,data,options);
-  },"WRAPPER");
-  libWrapper.register(ID,"CONFIG.Actor.documentClass.prototype.prepareData",function(wrapped,...args) {
-    const result = wrapped(...args);
-    prepareWoundData(this);
-    return result;
   },"WRAPPER");
   libWrapper.register(ID,"CONFIG.Actor.documentClass.prototype._rest",async function(wrapped,config,result) {
     const allow=config.type === "long";
@@ -955,7 +961,6 @@ Hooks.once("setup",()=>{
   },"WRAPPER");
 });
 Hooks.once("ready",()=>{
-  for(const actor of allActors()) actor.prepareData();
   game.modules.get(ID).api = {open,rollWound,addWound,treat,requestChoice,resolveChoice,records,eventLog,openJournal,resumeDamage,undoPreview,undoEvent,abandonDamage,auditWounds,repairPreview,repairWound};
   if(game.system.id !== "dnd5e" || !game.system.version.startsWith("6.")) ui.notifications.warn("Тяжёлые ранения: модуль рассчитан на dnd5e 6.x.");
   if(leadGM() && allActors().some(a=>a.getFlag(ID,"pending")||a.getFlag(ID,"beforeDamage"))) ui.notifications.info("Есть незавершённый выбор при 0 HP. Откройте ранения соответствующего персонажа.");
